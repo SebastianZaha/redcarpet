@@ -1186,8 +1186,23 @@ char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset
 		}
 
 		lr = find_link_ref(rndr->refs, id.data, id.size);
-		if (!lr)
-			goto cleanup;
+		if (!lr) {
+		    if (rndr->cb.dangling_link_ref) {
+                /* both the link text and the "ref" are treated as 2 dangling links */
+                struct buf *content = rndr_newbuf(rndr, BUFFER_SPAN);
+                bufput(content, data + 1, txt_e - 1);	
+                rndr->cb.dangling_link_ref(ob, content, rndr->opaque);
+
+                struct buf ref = { 0, 0, 0, 0 };
+                ref.data = id.data;
+                ref.size = id.size;
+                ret = rndr->cb.dangling_link_ref(ob, &ref, rndr->opaque);
+
+                /* rewinding the whitespace */
+                i = link_e + 1;
+		    }
+            goto cleanup;
+		}
 
 		/* keeping link and title from link_ref */
 		link = lr->link;
@@ -1221,8 +1236,18 @@ char_link(struct buf *ob, struct sd_markdown *rndr, uint8_t *data, size_t offset
 
 		/* finding the link_ref */
 		lr = find_link_ref(rndr->refs, id.data, id.size);
-		if (!lr)
-			goto cleanup;
+		if (!lr) {
+		    if (rndr->cb.dangling_link_ref) {
+                struct buf ref = { 0, 0, 0, 0 };
+                ref.data = id.data;
+                ref.size = id.size;
+		        ret = rndr->cb.dangling_link_ref(ob, &ref, rndr->opaque);
+
+                /* rewinding the whitespace */
+                i = txt_e + 1;
+		    }
+            goto cleanup;
+		}
 
 		/* keeping link and title from link_ref */
 		link = lr->link;

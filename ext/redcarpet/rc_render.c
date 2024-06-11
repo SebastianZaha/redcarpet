@@ -233,6 +233,12 @@ rndr_link(struct buf *ob, const struct buf *link, const struct buf *title, const
 }
 
 static int
+rndr_dangling_link_ref(struct buf *ob, const struct buf *text, void *opaque)
+{
+	SPAN_CALLBACK("dangling_link_ref", 1, buf2str(text));
+}
+
+static int
 rndr_raw_html(struct buf *ob, const struct buf *text, void *opaque)
 {
 	SPAN_CALLBACK("raw_html", 1, buf2str(text));
@@ -324,6 +330,7 @@ static struct sd_callbacks rb_redcarpet_callbacks = {
 	rndr_image,
 	rndr_linebreak,
 	rndr_link,
+    rndr_dangling_link_ref,
 	rndr_raw_html,
 	rndr_triple_emphasis,
 	rndr_strikethrough,
@@ -362,6 +369,7 @@ static const char *rb_redcarpet_method_names[] = {
 	"image",
 	"linebreak",
 	"link",
+	"dangling_link_ref",
 	"raw_html",
 	"triple_emphasis",
 	"strikethrough",

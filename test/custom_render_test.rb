@@ -103,4 +103,34 @@ class CustomRenderTest < Redcarpet::TestCase
       assert { output.include?("<td>D</td>") }
     end
   end
+
+  def test_link_reference_missing
+
+    custom = Class.new(Redcarpet::Render::HTML) do
+
+      def emphasis(text)
+        %(<em class="custom">#{text}</em>)
+      end
+
+      def dangling_link_ref(text)
+        %(<a href="https://example.com/#{text}">#{text}</a>)
+      end
+    end
+
+    #render = Class.new(Redcarpet::Render::Base)
+    #custom_parser = Redcarpet::Markdown.new(custom.new)
+
+    default = Redcarpet::Markdown.new(Redcarpet::Render::HTML)
+    md = Redcarpet::Markdown.new(custom)
+
+    # dangling references are rendered as plain text by default
+    assert_equal %{<p>test [ref] text_after</p>\n}, default.render("test [ref] text_after")
+    assert_equal %{<p>test [ref][ref2] text_after</p>\n}, default.render("test [ref][ref2] text_after")
+
+    assert_equal %{<p>test <em class="custom">ref</em></p>\n}, md.render("test *ref*")
+    assert_equal %{<p>test <a href="https://example.com/ref">ref</a></p>\n}, md.render("test [ref]")
+    assert_equal %{<p>test <a href="https://example.com/ref">ref</a><a href="https://example.com/ref2">ref2</a></p>\n}, md.render("test [ref][ref2]")
+    assert_equal %{<p>test <a href="https://example.com/ref">ref</a> text_after</p>\n}, md.render("test [ref] text_after")
+
+  end
 end
