@@ -449,4 +449,16 @@ class MarkdownTest < Redcarpet::TestCase
 
     assert_match /<table>/, output
   end
+
+  def test_blockquote_directly_after_list
+    output = render("- list item1\n\n> quote after 2 lines")
+    result = "<ul>\n<li>list item1</li>\n</ul>\n\n<blockquote>\n<p>quote after 2 lines</p>\n</blockquote>"
+
+    assert_equal result, output
+
+    output = render("- list item1\n> quote after 1 line")
+    result = "<ul>\n<li>list item1</li>\n</ul>\n<blockquote>\n<p>quote after 1 line</p>\n</blockquote>"
+
+    assert_equal result, output
+  end
 end
